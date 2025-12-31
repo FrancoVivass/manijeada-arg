@@ -19,7 +19,7 @@ import { DotLottiePlayerComponent } from '../../../shared/components/dot-lottie-
       <div class="game-info-bar">
         <div class="current-player-tag">
           <span class="dot"></span>
-          Turno de: <strong>{{ currentTurnPlayer()?.display_name || 'Cargando...' }}</strong>
+          Turno de: <strong>{{ currentTurnPlayer().display_name || 'Cargando...' }}</strong>
         </div>
         <div class="game-mode-tag">
           {{ game()?.mode }}
@@ -40,7 +40,7 @@ import { DotLottiePlayerComponent } from '../../../shared/components/dot-lottie-
           ></app-roulette>
           
           <div class="turn-hint" *ngIf="!isMyTurn()">
-            <p class="text-dim">Esperando que {{ currentTurnPlayer()?.display_name || 'jugador' }} gire...</p>
+            <p class="text-dim">Esperando que {{ currentTurnPlayer().display_name || 'jugador' }} gire...</p>
           </div>
         </div>
 
@@ -76,7 +76,7 @@ import { DotLottiePlayerComponent } from '../../../shared/components/dot-lottie-
 
             <!-- Others View -->
             <ng-template #remoteView>
-              <h2 class="result-title">{{ currentTurnPlayer()?.display_name || 'Jugador' }}</h2>
+              <h2 class="result-title">{{ currentTurnPlayer().display_name || 'Jugador' }}</h2>
               <p class="result-text remote-msg">
                 <span [ngSwitch]="result().type">
                   <span *ngSwitchCase="'RULE'">está creando una nueva regla... ⚖️</span>
@@ -118,7 +118,7 @@ import { DotLottiePlayerComponent } from '../../../shared/components/dot-lottie-
 
             <!-- Remote Waiting Message (For others) -->
             <div class="remote-waiting" *ngIf="!isMyTurn()">
-              <p class="animate-pulse">Esperando que {{ currentTurnPlayer()?.display_name || 'jugador' }} termine...</p>
+              <p class="animate-pulse">Esperando que {{ currentTurnPlayer().display_name || 'jugador' }} termine...</p>
             </div>
           </div>
         </div>
