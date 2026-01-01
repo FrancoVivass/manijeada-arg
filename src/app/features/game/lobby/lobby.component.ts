@@ -362,6 +362,15 @@ export class LobbyComponent implements OnInit, OnDestroy {
           table: 'games',
           filter: `id=eq.${gameId}`
         }, (payload: any) => {
+          console.log('🎯 Realtime update received:', {
+            gameId,
+            oldStatus: this.game()?.status,
+            newStatus: payload.new?.status,
+            gameType: payload.new?.game_type,
+            isHost: this.isHost(),
+            userId: this.authService.currentUser()?.id
+          });
+
           // Update the game signal with the new data
           this.game.set(payload.new as Game);
 
@@ -369,6 +378,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
           // (hosts handle navigation manually in startGame())
           if (payload.new['status'] === 'IN_PROGRESS' && !this.isHost()) {
             const gameType = payload.new['game_type'] || 'ROULETTE';
+            console.log('🎮 Auto-navigating to game:', { gameType, gameId });
+
             if (gameType === 'IMPOSTOR') {
               this.router.navigate([`/game/impostor/play`, gameId]);
             } else if (gameType === 'CARDS') {
@@ -380,7 +391,9 @@ export class LobbyComponent implements OnInit, OnDestroy {
             }
           }
         })
-        .subscribe();
+        .subscribe((status) => {
+          console.log('📡 Realtime subscription status:', status);
+        });
     }
   }
 
