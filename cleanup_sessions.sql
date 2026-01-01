@@ -57,14 +57,14 @@ BEGIN
 
     GET DIAGNOSTICS sessions_cleaned = ROW_COUNT;
 
-    -- 4. Log de la limpieza (opcional)
+    -- 4. Log de la limpieza (opcional) - Usar un UUID dummy para evitar NULL
     INSERT INTO public.sessions (
         game_id,
         player_id,
         action_type,
         action_description
     ) VALUES (
-        NULL,
+        '00000000-0000-0000-0000-000000000000'::uuid, -- UUID dummy para registros de sistema
         NULL,
         'SYSTEM_CLEANUP',
         jsonb_build_object(
