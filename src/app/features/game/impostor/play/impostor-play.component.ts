@@ -932,7 +932,7 @@ export class ImpostorPlayComponent implements OnInit, OnDestroy {
           schema: 'public',
           table: 'games',
           filter: `id=eq.${gameId}`
-        }, (payload) => {
+        }, (payload: any) => {
           const updatedGame = payload.new as Game;
           this.game.set(updatedGame);
 
@@ -954,8 +954,7 @@ export class ImpostorPlayComponent implements OnInit, OnDestroy {
     const currentUser = this.authService.currentUser();
     if (!currentUser) return null;
 
-    return this.players().find(p => p.user_id === currentUser.id) ||
-           this.players().find(p => p.is_guest && p.display_name === currentUser.user_metadata?.['display_name']);
+    return this.players().find(p => p.user_id === currentUser.id);
   }
 
   isImpostor(): boolean {
@@ -1188,10 +1187,6 @@ export class ImpostorPlayComponent implements OnInit, OnDestroy {
     return Object.keys(this.gameState().assignmentVotes).length;
   }
 
-  isLocalMode(): boolean {
-    // Modo local si todos los jugadores son invitados (sin conexión real)
-    return this.players().every(p => p.is_guest);
-  }
 
   getCurrentAssignmentPlayer(): Player | null {
     const players = this.players();

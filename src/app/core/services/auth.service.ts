@@ -8,7 +8,6 @@ import { User } from '@supabase/supabase-js';
 })
 export class AuthService {
   currentUser = signal<User | null>(null);
-  isGuest = signal(false);
   isInitialized = signal(false);
 
   constructor(
@@ -19,11 +18,6 @@ export class AuthService {
   }
 
   private async init() {
-    // Restaurar modo invitado si estaba activo
-    if (localStorage.getItem('isGuest') === 'true') {
-      this.setGuestMode();
-    }
-
     try {
       const { data: { user } } = await this.supabase.auth.getUser();
       if (user) {
@@ -37,11 +31,11 @@ export class AuthService {
       this.isInitialized.set(true);
     }
 
-    this.supabase.auth.onAuthStateChange(async (event, session) => {
+    this.supabase.auth.onAuthStateChange(async (event: any, session: any) => {
       const user = session?.user ?? null;
       this.currentUser.set(user);
       if (user) await this.ensureUserProfile(user);
-      
+
       if (event === 'SIGNED_OUT') {
         this.router.navigate(['/auth/login']);
       }
@@ -88,35 +82,16 @@ export class AuthService {
   async signOut() {
     await this.supabase.auth.signOut();
     this.currentUser.set(null);
-    this.isGuest.set(false);
-    localStorage.removeItem('isGuest');
   }
 
-  setGuestMode() {
-    this.isGuest.set(true);
-    localStorage.setItem('isGuest', 'true');
-    
-    // Generar un ID único para este invitado si no tiene uno
-    let guestId = localStorage.getItem('guestId');
-    if (!guestId) {
-      guestId = 'guest_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('guestId', guestId);
-    }
-
-    this.currentUser.set({
-      id: guestId,
-      email: 'guest@manijeada.dev',
-      user_metadata: { display_name: 'Invitado' }
-    } as any);
-  }
 
   get isAuthenticated() {
-    return !!this.currentUser() || this.isGuest();
+    return !!this.currentUser();
   }
 
   async updateProfile(updates: { display_name?: string, avatar_url?: string }) {
     const user = this.currentUser();
-    if (!user || this.isGuest()) return;
+    if (!user) return;
 
     const { error } = await this.supabase.from('users').update(updates).eq('id', user.id);
     if (error) throw error;
@@ -131,7 +106,7 @@ export class AuthService {
 
   async deleteAccount() {
     const user = this.currentUser();
-    if (!user || this.isGuest()) return;
+    if (!user) return;
 
     // En Supabase real, el borrado de cuenta suele requerir una función RPC o llamar a la API de Admin
     // Para este caso, borramos los datos públicos y cerramos sesión

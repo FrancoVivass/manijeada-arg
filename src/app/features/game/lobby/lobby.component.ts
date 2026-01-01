@@ -1,10 +1,11 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GameService } from '../../../core/services/game.service';
 import { Player, Game } from '../../../core/models/game.models';
 import { QrCodeComponent } from '../../../shared/components/qr-code/qr-code.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { SessionMonitorService } from '../../../core/services/session-monitor.service';
 
 @Component({
   selector: 'app-lobby',
@@ -12,6 +13,21 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [CommonModule, QrCodeComponent],
   template: `
     <div class="fade-in">
+      <!-- Session Warning -->
+      <div class="session-warning" *ngIf="sessionMonitor.sessionWarning()">
+        <div class="warning-card modern-card">
+          <div class="warning-icon">⏰</div>
+          <div class="warning-content">
+            <h3>¡Atención!</h3>
+            <p>{{ sessionMonitor.sessionWarning() }}</p>
+            <p class="time-remaining" *ngIf="sessionMonitor.timeRemaining() && sessionMonitor.timeRemaining()! > 0">
+              Tiempo restante: {{ sessionMonitor.getFormattedTimeRemaining() }}
+            </p>
+          </div>
+          <button class="warning-close" (click)="sessionMonitor.sessionWarning.set(null)">×</button>
+        </div>
+      </div>
+
       <section class="modern-card lobby-header">
         <div class="header-info">
           <h1>SALA DE ESPERA</h1>
@@ -46,13 +62,6 @@ import { AuthService } from '../../../core/services/auth.service';
           </div>
         </div>
 
-        <!-- Local Hint (Solo modo invitado) -->
-        <div class="modern-card qr-card" *ngIf="isHost() && authService.isGuest()">
-          <div class="qr-info">
-            <p>Modo Local Activo</p>
-            <span class="text-dim">Añade a tus amigos abajo y pasen el teléfono para jugar.</span>
-          </div>
-        </div>
 
         <!-- Players Section -->
         <div class="modern-card players-card">
@@ -67,16 +76,10 @@ import { AuthService } from '../../../core/services/auth.service';
               <div class="player-info">
                 <span class="player-name">{{ player.display_name }}</span>
                 <span class="player-role" *ngIf="player.user_id === game()?.host_id">HOST</span>
-                <span class="player-role guest" *ngIf="player.is_guest">GUEST</span>
               </div>
             </div>
           </div>
 
-          <!-- Add Guest (Host only) -->
-          <div class="guest-form" *ngIf="isHost()">
-            <input #guestName type="text" placeholder="Añadir invitado local" class="modern-input">
-            <button (click)="addGuest(guestName.value); guestName.value=''" class="modern-button outline">AÑADIR</button>
-          </div>
         </div>
       </div>
 
@@ -218,8 +221,6 @@ import { AuthService } from '../../../core/services/auth.service';
       border-radius: 4px;
       color: var(--accent-secondary);
     }
-    .player-role.guest { color: var(--accent-secondary); }
-
     .guest-form {
       margin-top: 10px;
       padding-top: 20px;
@@ -236,6 +237,68 @@ import { AuthService } from '../../../core/services/auth.service';
       font-size: 0.9rem;
     }
 
+    /* Session Warnings */
+    .session-warning {
+      margin-bottom: 20px;
+      animation: warningPulse 2s infinite;
+    }
+
+    .warning-card {
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      color: white;
+      border: none;
+      position: relative;
+    }
+
+    .warning-icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .warning-content h3 {
+      margin: 0 0 8px 0;
+      font-size: 1.2rem;
+    }
+
+    .warning-content p {
+      margin: 0 0 8px 0;
+      font-size: 0.95rem;
+    }
+
+    .time-remaining {
+      font-weight: bold;
+      color: #ffeaa7;
+    }
+
+    .warning-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+
+    .warning-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes warningPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+
     @media (min-width: 600px) {
       .lobby-grid { grid-template-columns: 1fr 1.5fr; }
     }
@@ -248,7 +311,7 @@ import { AuthService } from '../../../core/services/auth.service';
     .animate-pulse { animation: pulse 2s infinite ease-in-out; }
   `]
 })
-export class LobbyComponent implements OnInit {
+export class LobbyComponent implements OnInit, OnDestroy {
   game = signal<Game | null>(null);
   players = signal<Player[]>([]);
   joinUrl = '';
@@ -257,14 +320,27 @@ export class LobbyComponent implements OnInit {
     private gameService: GameService,
     public authService: AuthService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    public sessionMonitor: SessionMonitorService
   ) {}
 
   ngOnInit() {
     const gameId = this.route.snapshot.paramMap.get('id');
     if (gameId) {
       this.loadGame(gameId);
+      this.sessionMonitor.startMonitoring(gameId);
     }
+  }
+
+  ngOnDestroy() {
+    this.sessionMonitor.stopMonitoring();
+  }
+
+  /**
+   * Actualizar actividad de la sesión
+   */
+  private updateSessionActivity() {
+    this.sessionMonitor.updateActivity();
   }
 
   async loadGame(gameId: string) {
@@ -297,6 +373,8 @@ export class LobbyComponent implements OnInit {
               this.router.navigate([`/game/impostor/play`, gameId]);
             } else if (gameType === 'CARDS') {
               this.router.navigate([`/game/play/cards`, gameId]);
+            } else if (gameType === 'MIMIC') {
+              this.router.navigate([`/game/mimic/play`, gameId]);
             } else {
               this.router.navigate([`/game/play/roulette`, gameId]);
             }
@@ -310,19 +388,7 @@ export class LobbyComponent implements OnInit {
     const game = this.game();
     if (!game) return false;
 
-    // If there's a host_id, check if current user matches
-    if (game.host_id) {
-      return game.host_id === this.authService.currentUser()?.id;
-    }
-
-    // If no host_id (guest game), the host is the guest who created it
-    // We identify them by being a guest and having "Host" in their display name
-    if (this.authService.isGuest()) {
-      const currentUser = this.authService.currentUser();
-      return currentUser?.user_metadata?.['display_name'] === 'Invitado (Host)';
-    }
-
-    return false;
+    return game.host_id === this.authService.currentUser()?.id;
   }
 
   async startGame() {
@@ -331,6 +397,7 @@ export class LobbyComponent implements OnInit {
       console.log('🎮 Before startGame - game_type:', this.game()!.game_type);
 
       await this.gameService.startGame(this.game()!.id);
+      this.updateSessionActivity(); // Actualizar actividad
 
       // Wait for the real-time update to propagate
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -348,6 +415,9 @@ export class LobbyComponent implements OnInit {
       } else if (gameType === 'CARDS') {
         console.log('🃏 Host navigating to Cards');
         this.router.navigate([`/game/play/cards`, this.game()!.id]);
+      } else if (gameType === 'MIMIC') {
+        console.log('🎭 Host navigating to Mimic');
+        this.router.navigate([`/game/mimic/play`, this.game()!.id]);
       } else {
         console.log('🎡 Host navigating to Roulette');
         this.router.navigate([`/game/play/roulette`, this.game()!.id]);
@@ -355,13 +425,4 @@ export class LobbyComponent implements OnInit {
     }
   }
 
-  async addGuest(name: string) {
-    if (!name || !this.game()) return;
-    try {
-      await this.gameService.addGuestPlayer(this.game()!.id, name);
-    } catch (e) {
-      console.error(e);
-      alert('Error al añadir invitado');
-    }
-  }
 }

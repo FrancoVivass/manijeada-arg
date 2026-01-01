@@ -1,5 +1,6 @@
 import { Component, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { GameService } from '../../../core/services/game.service';
@@ -8,7 +9,7 @@ import { UserProfile } from '../../../core/models/game.models';
 @Component({
   selector: 'app-select-game',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="select-game-container fade-in">
       <!-- Welcome Header -->
@@ -91,6 +92,26 @@ import { UserProfile } from '../../../core/models/game.models';
           </div>
         </div>
 
+        <!-- MÍMICA -->
+        <div class="game-card mimic-card" (click)="goToMimic()">
+          <div class="card-bg-relleno">
+            <video autoplay loop muted playsinline>
+              <source src="assets/animations/relleno/mimica.webm" type="video/webm">
+            </video>
+          </div>
+          <div class="card-content">
+            <span class="game-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/><path d="M9 15c2 1 4 1 6 0"/></svg>
+            </span>
+            <h2>Mímica</h2>
+            <p>¡Actúa sin palabras! ¿Podrás hacer reír a tus amigos?</p>
+            <div class="card-footer">
+              <span class="status-online">GESTOS</span>
+              <button class="select-btn">JUGAR AHORA</button>
+            </div>
+          </div>
+        </div>
+
         <!-- BOMBA -->
         <div class="game-card upcoming-card">
           <div class="card-bg-relleno">
@@ -116,8 +137,8 @@ import { UserProfile } from '../../../core/models/game.models';
           <p>Unite a la partida de tus amigos.</p>
         </div>
         <div class="join-input-group">
-          <input #joinCode type="text" placeholder="CÓDIGO" maxlength="6">
-          <button (click)="joinByCode(joinCode.value)" [disabled]="!joinCode.value">UNIRSE</button>
+          <input type="text" placeholder="CÓDIGO" maxlength="6" [(ngModel)]="joinCodeValue">
+          <button (click)="joinByCode(joinCodeValue())" [disabled]="!joinCodeValue() || joinCodeValue().trim().length === 0">UNIRSE</button>
         </div>
       </section>
     </div>
@@ -297,6 +318,7 @@ import { UserProfile } from '../../../core/models/game.models';
 })
 export class SelectGameComponent implements OnInit {
   profile = signal<UserProfile | null>(null);
+  joinCodeValue = signal('');
 
   constructor(
     private authService: AuthService,
@@ -324,9 +346,42 @@ export class SelectGameComponent implements OnInit {
     this.router.navigate(['/game/impostor/setup']);
   }
 
+  goToMimic() {
+    this.router.navigate(['/game/mimic/setup']);
+  }
+
   joinByCode(code: string) {
-    if (!code) return;
-    this.router.navigate(['/game/join', code.toUpperCase()]);
+    if (!code || code.trim().length === 0) return;
+
+    // Limpiar espacios y convertir a mayúsculas
+    const cleanCode = code.trim().toUpperCase();
+
+    // Validar que tenga exactamente 6 caracteres (como se genera)
+    if (cleanCode.length !== 6) {
+      alert('El código debe tener exactamente 6 caracteres');
+      return;
+    }
+
+    // Validar que sea alfanumérico
+    if (!/^[A-Z0-9]+$/.test(cleanCode)) {
+      alert('El código solo puede contener letras y números');
+      return;
+    }
+
+    // Verificar si el usuario está autenticado
+    if (!this.authService.isAuthenticated) {
+      // Guardar el código para después del login
+      sessionStorage.setItem('pendingJoinCode', cleanCode);
+      console.log('Usuario no autenticado, guardando código y redirigiendo al login:', cleanCode);
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    console.log('Uniéndose a partida con código:', cleanCode);
+    this.router.navigate(['/game/join', cleanCode]);
+
+    // Limpiar el input después de navegar
+    this.joinCodeValue.set('');
   }
 }
 

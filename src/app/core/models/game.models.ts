@@ -17,7 +17,7 @@ export interface Game {
   current_turn_player_id?: string;
   created_at?: string;
   settings: GameSettings;
-  game_type?: 'ROULETTE' | 'CARDS' | 'IMPOSTOR';
+  game_type?: 'ROULETTE' | 'CARDS' | 'IMPOSTOR' | 'MIMIC';
 }
 
 export type GameMode = 'PREVIA' | 'NORMAL' | 'TRANQUI' | 'EXTREMO' | 'CUSTOM' | 'PICANTE' | 'BORRACHERA' | 'CAOS' | 'DESCONTROL' | 'APOCALIPSIS' | 'FIESTA INFINITA' | 'MAYOR_MENOR' | 'ROJO_NEGRO' | 'PIRAMIDE' | 'SIETE_LOCO';
@@ -28,7 +28,7 @@ export interface GameSettings {
   categories: string[];
   pyramid_size?: number;
   starting_shots?: number;
-  game_type?: 'ROULETTE' | 'CARDS' | 'IMPOSTOR';
+  game_type?: 'ROULETTE' | 'CARDS' | 'IMPOSTOR' | 'MIMIC';
 }
 
 export interface Player {
@@ -38,7 +38,6 @@ export interface Player {
   display_name: string;
   shots_count: number;
   is_active: boolean;
-  is_guest: boolean;
   joined_at?: string;
 }
 

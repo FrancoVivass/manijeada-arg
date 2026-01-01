@@ -24,14 +24,6 @@ import { AuthService } from '../../core/services/auth.service';
           <button type="button" (click)="toggleMode()" class="auth-btn outline white mobile-only" style="margin-top: 20px; width: 100%; border-color: rgba(255,255,255,0.2); font-size: 10px;">
             ¿NO TIENES CUENTA? REGÍSTRATE
           </button>
-          
-          <div class="guest-divider">
-            <span>o</span>
-          </div>
-          
-          <button type="button" (click)="continueAsGuest()" class="auth-btn outline white" style="margin-top: 0; width: 100%;">
-            JUGAR COMO INVITADO
-          </button>
 
           <div *ngIf="error()" class="error-msg">{{ error() }}</div>
         </form>
@@ -354,21 +346,6 @@ import { AuthService } from '../../core/services/auth.service';
 
     .mobile-only { display: none; }
 
-    .guest-divider {
-      width: 100%;
-      margin: 20px 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text-secondary);
-      font-size: 0.8rem;
-    }
-    .guest-divider::before, .guest-divider::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: rgba(255,255,255,0.1);
-    }
 
     /* MOBILE */
     @media (max-width: 768px) {
@@ -476,7 +453,20 @@ export class AuthComponent {
     try {
       const { error } = await this.authService.signIn(this.loginEmail, this.loginPassword);
       if (error) throw error;
-      this.router.navigate(['/']);
+
+      // Verificar si hay un código de partida pendiente
+      const pendingCode = sessionStorage.getItem('pendingJoinCode');
+      if (pendingCode) {
+        sessionStorage.removeItem('pendingJoinCode');
+        console.log('Redirigiendo a partida pendiente:', pendingCode);
+        this.router.navigate(['/game/join', pendingCode]);
+      } else {
+        this.router.navigate(['/']);
+      }
+
+      // Limpiar el formulario
+      this.loginEmail = '';
+      this.loginPassword = '';
     } catch (e: any) {
       this.error.set(e.message || 'Error al entrar');
     } finally {
@@ -506,8 +496,4 @@ export class AuthComponent {
     }
   }
 
-  continueAsGuest() {
-    this.authService.setGuestMode();
-    this.router.navigate(['/']);
-  }
 }

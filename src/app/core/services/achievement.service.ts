@@ -56,8 +56,8 @@ export class AchievementService {
     if (error) return [];
     
     // Map IDs to actual Achievement objects
-    return this.allAchievements().filter(ach => 
-      data.some(ua => ua.achievement_id === ach.id)
+    return this.allAchievements().filter(ach =>
+      data.some((ua: any) => ua.achievement_id === ach.id)
     );
   }
 
@@ -70,8 +70,8 @@ export class AchievementService {
 
     if (error) return [];
 
-    return this.allAchievements().filter(ach => 
-      data.some(ua => ua.achievement_id === ach.id)
+    return this.allAchievements().filter(ach =>
+      data.some((ua: any) => ua.achievement_id === ach.id)
     );
   }
 }

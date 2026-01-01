@@ -6,6 +6,11 @@ export const authGuard: CanActivateFn = async (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
+  // Allow access to join game by code without authentication
+  if (state.url.startsWith('/game/join/')) {
+    return true;
+  }
+
   if (authService.isAuthenticated) {
     return true;
   }

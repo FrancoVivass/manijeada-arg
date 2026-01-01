@@ -432,7 +432,7 @@ export class PlayComponent implements OnInit {
           schema: 'public', 
           table: 'sessions',
           filter: `game_id=eq.${gameId}` 
-        }, (payload) => {
+        }, (payload: any) => {
           if (payload.new['action_type'] === 'NEXT_TURN') {
             // Si soy el HOST, yo proceso el cambio de turno real en la DB
             if (this.isHost()) {
@@ -447,7 +447,7 @@ export class PlayComponent implements OnInit {
           schema: 'public',
           table: 'games',
           filter: `id=eq.${gameId}`
-        }, (payload) => {
+        }, (payload: any) => {
           const updatedGame = payload.new as Game;
           this.game.set(updatedGame);
           this.result.set(null);

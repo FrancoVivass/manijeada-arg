@@ -48,12 +48,11 @@ import { filter } from 'rxjs/operators';
                   </span>
                   <span class="nav-label">Impostor</span>
                 </div>
-                <div class="nav-item upcoming">
+                <div class="nav-item" routerLink="/game/mimic/setup" routerLinkActive="active">
                   <span class="nav-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2"/><rect width="12" height="12" x="10" y="9" rx="2"/><path d="M14 13h4"/><path d="M16 11v4"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/><path d="M9 15c2 1 4 1 6 0"/></svg>
                   </span>
                   <span class="nav-label">Mímica</span>
-                  <span class="upcoming-badge">PRÓX.</span>
                 </div>
           </nav>
 
@@ -106,9 +105,9 @@ import { filter } from 'rxjs/operators';
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-icon"><circle cx="12" cy="12" r="3"/><path d="M12 1v6M12 17v6M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M1 12h6M17 12h6M4.93 19.07l4.24-4.24M14.83 9.17l4.24-4.24"/></svg>
                     El Impostor
                   </li>
-                  <li class="upcoming-link">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-icon"><path d="M18 7V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2"/><rect width="12" height="12" x="10" y="9" rx="2"/><path d="M14 13h4"/><path d="M16 11v4"/></svg>
-                    Mímica (Pronto)
+                  <li routerLink="/game/mimic/setup" style="cursor: pointer;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-icon"><circle cx="12" cy="12" r="10"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/><path d="M9 15c2 1 4 1 6 0"/></svg>
+                    Mímica
                   </li>
               <li class="upcoming-link">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-icon"><circle cx="11" cy="13" r="9"/><path d="M18.35 5.65 19 5"/><path d="m21 3 1-1"/><path d="m19 2 1 1"/><path d="M22 1l-1 1"/><path d="M15 2h2"/></svg>
@@ -321,6 +320,7 @@ import { filter } from 'rxjs/operators';
 
     @media (max-width: 768px) {
       .header-nav { display: none; }
+      .main-footer { padding-top: 80px; } /* Más padding-top en móvil */
       .footer-grid { grid-template-columns: 1fr; text-align: center; gap: 50px; padding-bottom: 50px; }
       .brand-desc { margin: 0 auto 25px; }
       .footer-logo-box { justify-content: center; }

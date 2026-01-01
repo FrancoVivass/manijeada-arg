@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS public.games (
   host_id UUID, -- Allow NULL for guest hosts
   join_code TEXT UNIQUE NOT NULL,
   status TEXT DEFAULT 'LOBBY',
-  game_type TEXT DEFAULT 'ROULETTE' CHECK (game_type IN ('ROULETTE', 'CARDS', 'IMPOSTOR')),
+  game_type TEXT DEFAULT 'ROULETTE' CHECK (game_type IN ('ROULETTE', 'CARDS', 'IMPOSTOR', 'MIMIC')),
   mode TEXT DEFAULT 'NORMAL',
   current_turn_player_id UUID, -- We will link this after players table exists
   created_at TIMESTAMPTZ DEFAULT NOW(),

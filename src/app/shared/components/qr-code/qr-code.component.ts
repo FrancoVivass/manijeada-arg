@@ -51,3 +51,4 @@ export class QrCodeComponent implements AfterViewInit, OnChanges {
   }
 }
 
+

@@ -444,7 +444,7 @@ export class CardPlayComponent implements OnInit {
           schema: 'public', 
           table: 'sessions',
           filter: `game_id=eq.${gameId}` 
-        }, (payload) => {
+        }, (payload: any) => {
           this.handleRemoteAction(payload.new);
         })
         .subscribe();
@@ -469,13 +469,8 @@ export class CardPlayComponent implements OnInit {
     const currentUser = this.authService.currentUser();
     if (!currentUser) return null;
 
-    // Primero intentar encontrar por user_id
-    let player = this.players().find(p => p.user_id === currentUser.id);
-
-    // Si no se encontró y es invitado, buscar por is_guest
-    if (!player && this.authService.isGuest()) {
-      player = this.players().find(p => p.is_guest);
-    }
+    // Encontrar por user_id
+    const player = this.players().find(p => p.user_id === currentUser.id);
 
     return player;
   }

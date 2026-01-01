@@ -20,20 +20,16 @@ export class GameService {
 
   async createGame(mode: GameMode | any = 'NORMAL', settings?: any) {
     let user = this.auth.currentUser();
-    const isGuest = this.auth.isGuest();
-    
-    if (!user && !isGuest) {
+
+    if (!user) {
       const { data } = await this.auth.supabase.auth.getUser();
       user = data.user;
       if (user) this.auth.currentUser.set(user);
     }
 
-    if (!user && !isGuest) throw new Error('User not logged in');
+    if (!user) throw new Error('User not logged in');
 
-    // Si es invitado real (no guest local), asegurar perfil
-    if (user && !isGuest) {
-      await this.auth.ensureUserProfile(user);
-    }
+    await this.auth.ensureUserProfile(user);
 
     const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     
@@ -47,7 +43,7 @@ export class GameService {
     const gameType = settings?.game_type || 'ROULETTE';
 
     const gamePayload: any = {
-      host_id: isGuest ? null : user!.id,
+      host_id: user!.id,
       join_code: joinCode,
       game_type: gameType,
       mode: mode,
@@ -59,8 +55,8 @@ export class GameService {
 
     if (error) throw error;
 
-    const displayName = isGuest ? 'Invitado (Host)' : (user?.user_metadata?.['display_name'] || user?.email?.split('@')[0] || 'Host');
-    const hostPlayer = await this.addPlayerToGame(game.id, isGuest ? null : user!.id, displayName);
+    const displayName = user?.user_metadata?.['display_name'] || user?.email?.split('@')[0] || 'Host';
+    const hostPlayer = await this.addPlayerToGame(game.id, user!.id, displayName);
     
     // Set initial turn to host
     await this.supabase.from('games')
@@ -70,44 +66,20 @@ export class GameService {
     return game;
   }
 
-  async addPlayerToGame(gameId: string, userId: string | null, displayName: string) {
-    const isGuestSession = this.auth.isGuest();
-
+  async addPlayerToGame(gameId: string, userId: string, displayName: string) {
     const payload: any = {
       game_id: gameId,
       display_name: displayName,
-      is_guest: isGuestSession
+      user_id: userId,
+      is_guest: false
     };
 
-    if (userId) {
-      payload.user_id = userId;
-      // Only use upsert conflict if we have a user_id
-      const { data: player, error } = await this.supabase.from('players').upsert(payload, { onConflict: 'game_id,user_id' }).select().single();
-      if (error) throw error;
-      this.subscribeToGame(gameId);
-      return player;
-    } else {
-      // For guests, just insert without conflict resolution
-      const { data: player, error } = await this.supabase.from('players').insert(payload).select().single();
-      if (error) throw error;
-      this.subscribeToGame(gameId);
-      return player;
-    }
-  }
-
-  async addGuestPlayer(gameId: string, name: string) {
-    const { data, error } = await this.supabase.from('players').insert({
-      game_id: gameId,
-      display_name: name,
-      is_guest: true,
-      shots_count: 0,
-      is_active: true
-    }).select().single();
-
+    const { data: player, error } = await this.supabase.from('players').upsert(payload, { onConflict: 'game_id,user_id' }).select().single();
     if (error) throw error;
-    this.refreshPlayers(gameId);
-    return data;
+    this.subscribeToGame(gameId);
+    return player;
   }
+
 
   async getGameByCode(code: string) {
     const { data, error } = await this.supabase.from('games')
@@ -137,7 +109,7 @@ export class GameService {
         schema: 'public',
         table: 'games',
         filter: `id=eq.${gameId}`
-      }, (payload) => {
+      }, (payload: any) => {
         this.currentGame.set(payload.new as Game);
       })
       .subscribe();

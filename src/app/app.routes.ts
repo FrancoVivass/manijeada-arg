@@ -32,6 +32,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/game/impostor/setup/impostor-setup.component').then(m => m.ImpostorSetupComponent)
       },
       {
+        path: 'mimic/setup',
+        loadComponent: () => import('./features/game/mimic/setup/mimic-setup.component').then(m => m.MimicSetupComponent)
+      },
+      {
         path: 'lobby/:id',
         loadComponent: () => import('./features/game/lobby/lobby.component').then(m => m.LobbyComponent)
       },
@@ -46,6 +50,10 @@ export const routes: Routes = [
       {
         path: 'impostor/play/:id',
         loadComponent: () => import('./features/game/impostor/play/impostor-play.component').then(m => m.ImpostorPlayComponent)
+      },
+      {
+        path: 'mimic/play/:id',
+        loadComponent: () => import('./features/game/mimic/play/mimic-play.component').then(m => m.MimicPlayComponent)
       },
       {
         path: 'join/:code',

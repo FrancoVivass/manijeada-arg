@@ -12,9 +12,10 @@ CREATE TABLE IF NOT EXISTS public.users (
 -- TABLA DE JUEGOS (Salas de espera y activas)
 CREATE TABLE IF NOT EXISTS public.games (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    host_id UUID NOT NULL, -- Puede ser un UUID real o el ID de invitado
+    host_id UUID REFERENCES public.users(id), -- NULL para invitados, UUID real para usuarios registrados
     join_code TEXT UNIQUE NOT NULL,
     status TEXT DEFAULT 'LOBBY' CHECK (status IN ('LOBBY', 'IN_PROGRESS', 'FINISHED')),
+    game_type TEXT DEFAULT 'ROULETTE' CHECK (game_type IN ('ROULETTE', 'CARDS', 'IMPOSTOR', 'MIMIC')),
     mode TEXT DEFAULT 'NORMAL', -- PREVIA, PICANTE, MAYOR_MENOR, PIRAMIDE, SIETE_LOCO, etc.
     current_turn_player_id UUID,
     settings JSONB DEFAULT '{}'::jsonb,
@@ -84,7 +85,7 @@ CREATE POLICY "Users can update own profile" ON public.users FOR UPDATE USING (a
 ALTER TABLE public.games ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Games are viewable by everyone" ON public.games FOR SELECT USING (true);
 CREATE POLICY "Anyone can create a game" ON public.games FOR INSERT WITH CHECK (true);
-CREATE POLICY "Hosts can update their games" ON public.games FOR UPDATE USING (true);
+CREATE POLICY "Hosts can update their games" ON public.games FOR UPDATE USING (auth.uid() = host_id OR host_id IS NULL);
 
 ALTER TABLE public.players ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Players are viewable by everyone" ON public.players FOR SELECT USING (true);
@@ -94,4 +95,5 @@ CREATE POLICY "Anyone can update player stats" ON public.players FOR UPDATE USIN
 ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Sessions are viewable by everyone" ON public.sessions FOR SELECT USING (true);
 CREATE POLICY "Anyone can insert session actions" ON public.sessions FOR INSERT WITH CHECK (true);
+
 

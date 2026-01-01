@@ -73,7 +73,7 @@ export class JoinComponent implements OnInit {
       return;
     }
 
-    if (!this.authService.isAuthenticated && !this.authService.isGuest()) {
+    if (!this.authService.isAuthenticated) {
       sessionStorage.setItem('pendingJoinCode', this.joinCode);
       this.router.navigate(['/auth/login']);
       return;
@@ -89,19 +89,11 @@ export class JoinComponent implements OnInit {
       }
 
       const user = this.authService.currentUser();
-      const isGuest = this.authService.isGuest();
-      let displayName = '';
-
-      if (user && !isGuest) {
-        displayName = user.user_metadata['display_name'] || user.email?.split('@')[0] || 'Jugador';
+      if (user) {
+        const displayName = user.user_metadata['display_name'] || user.email?.split('@')[0] || 'Jugador';
         await this.gameService.addPlayerToGame(game.id, user.id, displayName);
-      } else if (isGuest) {
-        // For guests, generate a unique display name
-        displayName = `Invitado ${Math.floor(Math.random() * 1000)}`;
-        await this.gameService.addPlayerToGame(game.id, null, displayName);
+        this.router.navigate(['/game/lobby', game.id]);
       }
-
-      this.router.navigate(['/game/lobby', game.id]);
     } catch (e) {
       console.error(e);
       this.router.navigate(['/']);
