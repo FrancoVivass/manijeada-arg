@@ -96,7 +96,7 @@ import { UserProfile } from '../../../core/models/game.models';
         <div class="game-card mimic-card" (click)="goToMimic()">
           <div class="card-bg-relleno">
             <video autoplay loop muted playsinline>
-              <source src="assets/animations/relleno/mimica.webm" type="video/webm">
+              <source src="assets/animations/mimica.webm" type="video/webm">
             </video>
           </div>
           <div class="card-content">
