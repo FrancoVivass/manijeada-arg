@@ -97,7 +97,7 @@ BEGIN
     SELECT
         g.id,
         GREATEST(g.created_at, MAX(s.created_at)) as last_activity,
-        COUNT(p.id) as player_count,
+        COUNT(p.id)::INTEGER as player_count,
         g.status,
         g.game_type
     FROM public.games g
