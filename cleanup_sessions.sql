@@ -19,6 +19,7 @@ DECLARE
     games_closed INTEGER := 0;
     sessions_cleaned INTEGER := 0;
     users_notified INTEGER := 0;
+    temp_count INTEGER := 0;
     game_record RECORD;
     player_record RECORD;
 BEGIN
@@ -46,7 +47,9 @@ BEGIN
         WHERE created_at >= cutoff_time
     );
 
-    GET DIAGNOSTICS games_closed = games_closed + ROW_COUNT;
+    -- Acumular el conteo de juegos cerrados
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    games_closed := games_closed + temp_count;
 
     -- 3. Limpiar sesiones antiguas (más de 24 horas)
     DELETE FROM public.sessions
